@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #bg {
+            width: 800px;
+            height: 500px;
+            margin: auto;
+            background-image: url(./background-01.jpg);
+            cursor: url(./net.png) 50 50, auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #bg:active {
+            cursor: url(./net2.png) 50 50, auto;
+        }
+
+        #bg>img {
+            position: absolute;
+        }
+
+        #btn-start {
+            position: absolute;
+            left: 50%;
+            display: inline-block;
+            text-align: center;
+            padding: 15px 25px;
+            border: 0px solid #3a9999;
+            border-radius: 30px;
+            background: #BAECFF;
+            background: linear-gradient(to bottom, #18ffff, #0fa7af);
+            text-shadow: #0b777d 1px 0px 1px;
+            color: #ffffff;
+        }
+
+        #btn-start:hover {
+            background: #C8D3FF;
+            background: linear-gradient(to bottom, #D1BAFF, #ADA9E8);
+        }
+
+        .text {
+            position: absolute;
+            left: 49%;
+            margin-top: 60px;
+            text-align: center;
+            font-family: 微軟正黑體;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="bg"></div>
+    <input type="button" value="開始" id="btn-start">
+    <div class="text">
+        <p>抓到了:<span id="text-score">0</span>條</p>
+        <p>剩餘時間:<span id="text-time">20</span>秒</p>
+    </div>
+
+    <script src="./jquery-3.5.0.min.js"></script>
+    <script>
+        // 分數
+        let score = 0;
+        // 剩餘時間
+        let time = 20;
+        // 計時器
+        let gametimer = 0;
+        // 魚兒編號
+        let fishid = 0;
+        // 垃圾編號
+        let trashid = 0;
+
+        const rand = (num) => {
+            return Math.round(Math.random() * num)
+        }
+
+        const move = (fish) => {
+            $(`#fish${fishid}`).animate({
+                // 最後的點 rand隨機
+                top: 20 + "%",
+                left: 30 + "%",
+            }, 1000).animate({
+                top: 40 + "%",
+                left: 60 + "%",
+            }).animate({
+                // 最後的點 rand隨機
+                top: 100 + "%",
+                left: 100 + "%",
+            }, 1500, function () {
+                move(fish);
+            })
+        }
+
+        const move2 = (fish) => {
+            $(`#fish2${fishid}`).animate({
+                // 最後的點 rand隨機
+                top: -10 + "%",
+                left: -20 + "%",
+            }, 1000, function () {
+                move2(fish);
+            })
+        }
+
+        const move3 = (trash) => {
+            $(`#trash${trashid}`).animate({
+                // 最後的點 rand隨機
+                top: -10 + "%",
+                left: -30 + "%",
+            }, 3000, function () {
+                move3(trash);
+            })
+        }
+
+
+        $("#btn-start").mousedown(function () {
+            $("#btn-start").attr("value", "遊戲中");
+            // 按下去之後開始就不能再按
+            $(this).attr("disabled", true);
+            $("#bg").css("cursor", "url(./net.png) 50 50,auto")
+            score = 0;
+            $("#text-score").text(score);
+            time = 20;
+            $("#text-time").text(time);
+
+            gametimer = setInterval(() => {
+                time--;
+                $("#text-time").text(time);
+                // 時間到
+                if (time == 0) {
+                    $("#btn-start").attr("value", "開始");
+                    clearInterval(gametimer);
+                    $(this).attr("disabled", false);
+                    setTimeout(() => {
+                        alert("魚網破了");
+                    }, 100)
+                    $("#bg").css("cursor", "url(./net-end.png) 50 50,auto")
+                    $("#bg img").remove();
+
+                }
+                else {
+                    const num = rand(10);
+                    if (num > 3) {
+                        $("#bg").append(`<img src="./魚red-01.gif" class="fish1" id="fish${fishid}">`)
+                        // 原點
+                        $(`#fish${fishid}`).css({
+                            top: 0 + "%",
+                            left: 0 + "%",
+                        })
+                        move(fishid);
+                        fishid++;
+                    }
+                    if (num > 5) {
+                        $("#bg").append(`<img src="./魚black-01.gif" class="fish2" id="fish2${fishid}">`)
+                        // 原點
+                        $(`#fish2${fishid}`).css({
+                            top: 100 + "%",
+                            left: 100 + "%",
+                        })
+                        move2(fishid);
+                        fishid++;
+                    }
+                    if (num > 6) {
+                        $("#bg").append(`<img src="./t.gif" class="trash" id="trash${trashid}">`)
+                        // 原點
+                        $(`#trash${trashid}`).css({
+                            top: 100 + "%",
+                            left: 100 + "%",
+                        })
+                        move3(trashid);
+                        trashid++;
+                    }
+                }
+            }, 1000)
+
+        })
+
+        $("#bg").on("mousedown", ".fish1", function () {
+            $(this).css("pointer-events", "none");
+            $(this).attr("src", "./catch.png")
+            $(this).stop(true);
+            $(this).animate({
+                width: "220px",
+                height: "220px",
+                top: "400px"
+            }, "fast", function () {
+                $(this).fadeOut(2000, function () { })
+            })
+            score++;
+            $("#text-score").text(score);
+        })
+
+        $("#bg").on("mousedown", ".fish2", function () {
+            $(this).css("pointer-events", "none");
+            $(this).attr("src", "./catch2.png")
+            $(this).stop(true);
+            $(this).animate({
+                width: "220px",
+                height: "220px",
+                top: "400px"
+            }, "fast", function () {
+                $(this).fadeOut(2000, function () { })
+            })
+            score += 3;
+            $("#text-score").text(score);
+        })
+
+        $("#bg").on("mousedown", ".trash", function () {
+            $(this).css("pointer-events", "none");
+            $(this).attr("src", "./oo.png")
+            $(this).stop(true);
+            $(this).animate({
+                width: "200px",
+                height: "200px",
+                top: "400px"
+            }, "slow", function () {
+                $(this).fadeOut(2000)
+            })
+            score--;
+            $("#text-score").text(score);
+        })
+
+    </script>
+</body>
+
+</html>
